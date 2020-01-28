@@ -4,8 +4,8 @@ from physicalObject import TerrestrialPlanet
 
 SIM_WINDOW_WIDTH = 800  # pixels
 SIM_WINDOW_HEIGHT = 600  # pixels
-MIN_OBJECT_DIAMETER = 5  # pixels
-MAX_OBJECT_DIAMETER = 50  # pixels
+MIN_OBJECT_DIAMETER = 2  # pixels
+MAX_OBJECT_DIAMETER = 5  # pixels
 MAX_NUM_OF_OBJECTS = 2
 FPS = 60
 TIMESTEP = 1. / FPS
@@ -15,8 +15,8 @@ def init_objects():
     # TODO: default class constructor and objects_array = [TerrestrialPlanet() for _ in range(MAX_NUM_OF_OBJECTS)]?
     # TODO: watch it not to introduce collisions at the init phase
     objects_array = []
-    position_vec = np.c_[np.random.randint(0, SIM_WINDOW_HEIGHT, MAX_NUM_OF_OBJECTS),
-                         np.random.randint(0, SIM_WINDOW_WIDTH, MAX_NUM_OF_OBJECTS)]
+    position_vec = np.c_[np.random.randint(0, SIM_WINDOW_WIDTH, MAX_NUM_OF_OBJECTS),
+                         np.random.randint(0, SIM_WINDOW_HEIGHT, MAX_NUM_OF_OBJECTS)]
     diameter = np.random.randint(MIN_OBJECT_DIAMETER, MAX_OBJECT_DIAMETER, MAX_NUM_OF_OBJECTS)
     velocity_vec = np.zeros(MAX_NUM_OF_OBJECTS)
     color = np.c_[np.random.randint(0, 255, MAX_NUM_OF_OBJECTS),
@@ -54,7 +54,11 @@ def main():
             if event.type == pygame.QUIT:
                 crashed = True
 
-            draw_objects(simDisplay, celestial_objects)
+        for obj_idx, celestial_object in enumerate(celestial_objects):
+            celestial_object.update(celestial_objects[(obj_idx+1):])
+
+        simDisplay.fill(pygame.Color('black'))
+        draw_objects(simDisplay, celestial_objects)
 
         pygame.display.update()
         clock.tick(60)
