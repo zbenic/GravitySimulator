@@ -6,7 +6,7 @@ SIM_WINDOW_WIDTH = 800  # pixels
 SIM_WINDOW_HEIGHT = 600  # pixels
 MIN_OBJECT_DIAMETER = 2  # pixels
 MAX_OBJECT_DIAMETER = 5  # pixels
-MAX_NUM_OF_OBJECTS = 20
+MAX_NUM_OF_OBJECTS = 2
 FPS = 60
 TIMESTEP = 1. / FPS
 
@@ -15,13 +15,13 @@ def init_objects():
     # TODO: default class constructor and objects_array = [TerrestrialPlanet() for _ in range(MAX_NUM_OF_OBJECTS)]?
     # TODO: be careful not to introduce collisions at the init phase
     objects_array = []
-    position_vec = np.c_[np.random.randint(0, SIM_WINDOW_WIDTH, MAX_NUM_OF_OBJECTS),
-                         np.random.randint(0, SIM_WINDOW_HEIGHT, MAX_NUM_OF_OBJECTS)]
-    diameter = np.random.randint(MIN_OBJECT_DIAMETER, MAX_OBJECT_DIAMETER, MAX_NUM_OF_OBJECTS)
+    # position_vec = np.c_[np.random.randint(0, SIM_WINDOW_WIDTH, MAX_NUM_OF_OBJECTS),
+    #                      np.random.randint(0, SIM_WINDOW_HEIGHT, MAX_NUM_OF_OBJECTS)]
+    # diameter = np.random.randint(MIN_OBJECT_DIAMETER, MAX_OBJECT_DIAMETER, MAX_NUM_OF_OBJECTS)
 
-    # # test vectors
-    # position_vec = np.array([[100, 300], [700, 300]])
-    # diameter = np.array([10, 10])
+    # test vectors
+    position_vec = np.array([[100, 300], [700, 300]])
+    diameter = np.array([10, 10])
     velocity_vec = np.zeros((MAX_NUM_OF_OBJECTS, 2))
     color = np.c_[np.random.randint(0, 255, MAX_NUM_OF_OBJECTS),
                   np.random.randint(0, 255, MAX_NUM_OF_OBJECTS),
@@ -54,12 +54,20 @@ def main():
     clock = pygame.time.Clock()
 
     celestial_objects = init_objects()
+    celestial_objects = np.asarray(celestial_objects)
 
     crashed = False
     while not crashed:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 crashed = True
+
+        removal_mask = np.ones(len(celestial_objects), dtype=bool)
+        for obj_idx, celestial_object in enumerate(celestial_objects):
+            celestial_object.check_for_collisions_and_merge(celestial_objects[(obj_idx+1):])
+            removal_mask[obj_idx] = True if celestial_object.object_is_valid is True else False
+
+        celestial_objects = celestial_objects[removal_mask]
 
         for obj_idx, celestial_object in enumerate(celestial_objects):
             celestial_object.update(celestial_objects[(obj_idx+1):])
