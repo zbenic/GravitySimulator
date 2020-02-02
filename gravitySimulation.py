@@ -6,19 +6,23 @@ SIM_WINDOW_WIDTH = 800  # pixels
 SIM_WINDOW_HEIGHT = 600  # pixels
 MIN_OBJECT_DIAMETER = 2  # pixels
 MAX_OBJECT_DIAMETER = 5  # pixels
-MAX_NUM_OF_OBJECTS = 2
+MAX_NUM_OF_OBJECTS = 20
 FPS = 60
 TIMESTEP = 1. / FPS
 
 
 def init_objects():
     # TODO: default class constructor and objects_array = [TerrestrialPlanet() for _ in range(MAX_NUM_OF_OBJECTS)]?
-    # TODO: watch it not to introduce collisions at the init phase
+    # TODO: be careful not to introduce collisions at the init phase
     objects_array = []
     position_vec = np.c_[np.random.randint(0, SIM_WINDOW_WIDTH, MAX_NUM_OF_OBJECTS),
                          np.random.randint(0, SIM_WINDOW_HEIGHT, MAX_NUM_OF_OBJECTS)]
     diameter = np.random.randint(MIN_OBJECT_DIAMETER, MAX_OBJECT_DIAMETER, MAX_NUM_OF_OBJECTS)
-    velocity_vec = np.zeros(MAX_NUM_OF_OBJECTS)
+
+    # # test vectors
+    # position_vec = np.array([[100, 300], [700, 300]])
+    # diameter = np.array([10, 10])
+    velocity_vec = np.zeros((MAX_NUM_OF_OBJECTS, 2))
     color = np.c_[np.random.randint(0, 255, MAX_NUM_OF_OBJECTS),
                   np.random.randint(0, 255, MAX_NUM_OF_OBJECTS),
                   np.random.randint(0, 255, MAX_NUM_OF_OBJECTS)]
@@ -33,9 +37,12 @@ def init_objects():
     return objects_array
 
 
-def draw_objects(display, celestial_objects):
+def draw_objects(display, celestial_objects, draw_vel_vec=False):
     for celestial_object in celestial_objects:
         pygame.draw.circle(display, celestial_object.color, celestial_object.position_vec, celestial_object.diameter)
+        if draw_vel_vec:
+            pygame.draw.line(display, celestial_object.color, celestial_object.position_vec,
+                             celestial_object.position_vec + celestial_object.velocity_vec)
 
 
 def main():
@@ -58,7 +65,7 @@ def main():
             celestial_object.update(celestial_objects[(obj_idx+1):])
 
         simDisplay.fill(pygame.Color('black'))
-        draw_objects(simDisplay, celestial_objects)
+        draw_objects(simDisplay, celestial_objects, draw_vel_vec=False)
 
         pygame.display.update()
         clock.tick(60)
