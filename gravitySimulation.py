@@ -1,12 +1,13 @@
 import numpy as np
 import pygame
-from physicalObject import TerrestrialPlanet
+from physicalObject import TerrestrialPlanet, YellowSun
 
 SIM_WINDOW_WIDTH = 800  # pixels
 SIM_WINDOW_HEIGHT = 600  # pixels
 MIN_OBJECT_DIAMETER = 2  # pixels
 MAX_OBJECT_DIAMETER = 5  # pixels
-MAX_NUM_OF_OBJECTS = 2
+MAX_NUM_OF_OBJECTS = 50
+CENTRAL_SUN = True
 FPS = 60
 TIMESTEP = 1. / FPS
 
@@ -15,25 +16,34 @@ def init_objects():
     # TODO: default class constructor and objects_array = [TerrestrialPlanet() for _ in range(MAX_NUM_OF_OBJECTS)]?
     # TODO: be careful not to introduce collisions at the init phase
     objects_array = []
-    # position_vec = np.c_[np.random.randint(0, SIM_WINDOW_WIDTH, MAX_NUM_OF_OBJECTS),
-    #                      np.random.randint(0, SIM_WINDOW_HEIGHT, MAX_NUM_OF_OBJECTS)]
-    # diameter = np.random.randint(MIN_OBJECT_DIAMETER, MAX_OBJECT_DIAMETER, MAX_NUM_OF_OBJECTS)
+    position_vec = np.c_[np.random.randint(0, SIM_WINDOW_WIDTH, MAX_NUM_OF_OBJECTS),
+                         np.random.randint(0, SIM_WINDOW_HEIGHT, MAX_NUM_OF_OBJECTS)]
+    diameter = np.random.randint(MIN_OBJECT_DIAMETER, MAX_OBJECT_DIAMETER, MAX_NUM_OF_OBJECTS)
 
-    # test vectors
-    position_vec = np.array([[100, 300], [700, 300]])
-    diameter = np.array([10, 10])
+    # # test vectors
+    # position_vec = np.array([[100, 300], [700, 300]])
+    # diameter = np.array([10, 10])
     velocity_vec = np.zeros((MAX_NUM_OF_OBJECTS, 2))
     color = np.c_[np.random.randint(0, 255, MAX_NUM_OF_OBJECTS),
                   np.random.randint(0, 255, MAX_NUM_OF_OBJECTS),
                   np.random.randint(0, 255, MAX_NUM_OF_OBJECTS)]
     for i in range(0, MAX_NUM_OF_OBJECTS):
-        objects_array.append(TerrestrialPlanet(i,
-                                               position_vec[i],
-                                               diameter[i],
-                                               velocity_vec[i],
-                                               color[i],
-                                               MAX_NUM_OF_OBJECTS,
-                                               TIMESTEP))
+        if CENTRAL_SUN:
+            objects_array.append(TerrestrialPlanet(i,
+                                                   position_vec[i],
+                                                   diameter[i],
+                                                   velocity_vec[i],
+                                                   color[i],
+                                                   MAX_NUM_OF_OBJECTS + 1,
+                                                   TIMESTEP))
+        else:
+            objects_array.append(TerrestrialPlanet(i,
+                                                   position_vec[i],
+                                                   diameter[i],
+                                                   velocity_vec[i],
+                                                   color[i],
+                                                   MAX_NUM_OF_OBJECTS,
+                                                   TIMESTEP))
     return objects_array
 
 
@@ -55,6 +65,18 @@ def main():
 
     celestial_objects = init_objects()
     celestial_objects = np.asarray(celestial_objects)
+
+    if CENTRAL_SUN:
+        central_sun = YellowSun(len(celestial_objects),
+                                np.array([SIM_WINDOW_WIDTH / 2, SIM_WINDOW_HEIGHT / 2]),
+                                MAX_OBJECT_DIAMETER * 3,
+                                np.zeros(2),
+                                np.array([255, 255, 0]),
+                                MAX_NUM_OF_OBJECTS + 1,
+                                TIMESTEP,
+                                static_object=True)
+
+        celestial_objects = np.append(celestial_objects, central_sun)
 
     crashed = False
     while not crashed:

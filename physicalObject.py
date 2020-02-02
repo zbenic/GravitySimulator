@@ -7,7 +7,7 @@ MIN_DISTANCE = 5  # pixels
 
 
 class PhysicalObject:
-    def __init__(self, object_id, position, diameter, velocity_vec, color, total_object_count, timestep):
+    def __init__(self, object_id, position, diameter, velocity_vec, color, total_object_count, timestep, static_object = False):
         self.object_id = object_id
         self.position_vec = position.astype(np.float32)
         self.diameter = diameter
@@ -18,6 +18,7 @@ class PhysicalObject:
         self.old_total_acc_vec = np.zeros(2)                          # 2 is the number of dimensions
         self.timestep = timestep
         self.object_is_valid = True
+        self.static_object = static_object
 
     def _get_object_mass(self):
         raise NotImplementedError
@@ -46,16 +47,18 @@ class PhysicalObject:
 
     @staticmethod
     def merge_objects(main_object, secondary_object):
-        secondary_object.object_is_valid = False
-        main_object.mass += secondary_object.mass
-        # equal density for all object is assumed
-        # TODO: enable different object types (densities) to be merged
-        main_object.diameter = int(np.ceil(np.power(3 * main_object.mass / (4 * np.pi * TerrestrialPlanet.density), 1. / 3) * 2))
+        secondary_object.object_is_valid = False if secondary_object.static_object is False else True
+        if main_object.static_object is False:
+            main_object.mass += secondary_object.mass
+            # equal density for all object is assumed
+            # TODO: enable different object types (densities) to be merged
+            main_object.diameter = int(np.ceil(np.power(3 * main_object.mass / (4 * np.pi * TerrestrialPlanet.density), 1. / 3) * 2))
 
     def check_for_collisions_and_merge(self, celestial_objects):
         # collision of only 2 bodies handled
+        # the mass of the central sun, if existing, does not change
         # TODO: add collision of multiple bodies
-        if self.object_is_valid:
+        if self.object_is_valid and not self.static_object:
             for celestial_object in celestial_objects:
                 if np.linalg.norm(np.subtract(self.position_vec, celestial_object.position_vec)) <= MIN_DISTANCE:
                     plastic_collision_acc_vec = (self.mass * self.old_total_acc_vec +
@@ -76,7 +79,8 @@ class PhysicalObject:
                     break
 
     def update(self, celestial_objects):
-        self._get_object_position(celestial_objects)
+        if not self.static_object:
+            self._get_object_position(celestial_objects)
 
 
 class TerrestrialPlanet(PhysicalObject):
